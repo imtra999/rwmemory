@@ -19,12 +19,14 @@ public:
 		processEntry.dwSize = sizeof(PROCESSENTRY32);
 
 		// Find process in snapshot and open handle
-		while (Process32Next(hSnapshot, &processEntry)) {
-			if (processName.compare(processEntry.szExeFile)) {
-				processId = processEntry.th32ProcessID;
-				hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, processId);
-				break;
-			}
+		if (Process32First(hSnapshot, &processEntry)) {
+			do {
+				if (std::string_view(processEntry.szExeFile) == processName) {
+					processId = processEntry.th32ProcessID;
+					hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, processId);
+					break;
+				}
+			} while (Process32Next(hSnapshot, &processEntry));
 		}
 
 		// Free handle
